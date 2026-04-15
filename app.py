@@ -14,32 +14,40 @@ st.markdown("""
         padding-bottom: 5rem !important;
     }
     
-    /* 전체 폰트 적용 (글자 겹침 버그 해결을 위해 line-height 분리) */
-    html, body, p, span, div, text {
+    /* 💡 [핵심 수정] 폰트는 전체 적용하되, Streamlit 내부 UI(버튼, 업로더 등)가 깨지지 않도록 정밀 타겟팅 */
+    html, body, [class*="css"] {
         font-family: 'Noto Sans KR', sans-serif !important;
-        color: #111111 !important;
     }
     
-    /* 본문 설명글에만 줄간격 적용하여 타이틀 겹침 방지 */
-    .stMarkdown p {
-        line-height: 1.8 !important;
-    }
-    
-    /* 헤더 스타일 커스텀 (쿠팡 블루) 및 섹션별 위아래 여백 */
-    .stHeader h1, .stHeader h2, .stHeader h3 {
+    /* 제목(h1) 줄간격 및 여백 정상화 */
+    h1 {
         color: #007AFF !important;
         font-weight: 800 !important;
-        line-height: 1.4 !important; 
+        line-height: 1.5 !important;
+        padding-bottom: 1rem !important;
     }
     
+    /* 소제목(h2, h3) 줄간격 및 섹션별 위아래 여백 */
     h2 {
+        color: #007AFF !important;
+        font-weight: 800 !important;
+        line-height: 1.5 !important;
         margin-top: 3.5rem !important; 
         margin-bottom: 1.5rem !important;
     }
     
     h3 {
+        color: #007AFF !important;
+        font-weight: 800 !important;
+        line-height: 1.5 !important;
         margin-top: 2rem !important;
         margin-bottom: 1.2rem !important;
+    }
+    
+    /* 본문(p, li)에만 넉넉한 줄간격 적용하여 겹침 방지 */
+    p, li {
+        color: #111111 !important;
+        line-height: 1.8 !important;
     }
     
     /* 메트릭 카드 디자인 개선 */
@@ -47,6 +55,7 @@ st.markdown("""
         font-size: 28px !important;
         font-weight: 900 !important;
         color: #007AFF !important;
+        line-height: 1.2 !important;
     }
     [data-testid="stMetricLabel"] {
         font-size: 16px !important;
@@ -181,7 +190,6 @@ if uploaded_file is not None:
         
         df_keywords = pivot_df[~non_search_condition].copy()
         
-        # 💡 [핵심 수정] CPC Top 30 추출 시 클릭수(>=3) 안전장치 조건 완전 삭제! (단 1번 클릭이라도 비싸면 색출)
         top_spend = df_keywords.sort_values(by='광고비', ascending=False).head(30)
         top_cpc = df_keywords.sort_values(by='CPC', ascending=False).head(30)
 
