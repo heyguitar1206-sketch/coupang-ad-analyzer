@@ -14,21 +14,26 @@ st.markdown("""
         padding-bottom: 5rem !important;
     }
     
-    /* 💡 [신규 추가] 전체 폰트 줄간격 및 여유 공간 확대 */
-    html, body, [class*="css"], p, span {
+    /* 💡 [수정] 전체 폰트 적용 (글자 겹침 버그 해결을 위해 line-height 분리) */
+    html, body, p, span, div, text {
         font-family: 'Noto Sans KR', sans-serif !important;
         color: #111111 !important;
-        line-height: 1.8 !important; /* 글자 위아래 간격을 넓혀 가독성 향상 */
     }
     
-    /* 헤더 스타일 커스텀 (쿠팡 블루) 및 💡섹션별 위아래 여백 대폭 확대 */
+    /* 본문 설명글에만 줄간격 적용하여 타이틀 겹침 방지 */
+    .stMarkdown p {
+        line-height: 1.8 !important;
+    }
+    
+    /* 헤더 스타일 커스텀 (쿠팡 블루) 및 섹션별 위아래 여백 */
     .stHeader h1, .stHeader h2, .stHeader h3 {
         color: #007AFF !important;
         font-weight: 800 !important;
+        line-height: 1.4 !important; /* 타이틀 줄간격 정상화 */
     }
     
     h2 {
-        margin-top: 3.5rem !important; /* 1, 2, 3단계 제목 위쪽 공백을 아주 크게 띄움 */
+        margin-top: 3.5rem !important; 
         margin-bottom: 1.5rem !important;
     }
     
@@ -50,12 +55,12 @@ st.markdown("""
         margin-bottom: 0.5rem !important;
     }
     
-    /* 표 헤더 색상 및 여백 */
+    /* 요약 표 헤더 색상 및 여백 */
     thead tr th {
         background-color: #F0F7FF !important;
         color: #0056b3 !important;
         font-weight: 700 !important;
-        padding: 12px 10px !important; /* 표 내부 셀 여백 넉넉하게 */
+        padding: 12px 10px !important; 
     }
     
     tbody tr td {
@@ -66,7 +71,7 @@ st.markdown("""
 
 st.title("📊 쿠팡 광고보고서 자동 분석기")
 st.markdown("쿠팡 윙(Wing) 스타일의 직관적인 인터페이스로 광고 성과를 심층 분석합니다.")
-st.write("<br>", unsafe_allow_html=True) # 타이틀 아래 공간 띄우기
+st.write("<br>", unsafe_allow_html=True) 
 
 uploaded_file = st.file_uploader("분석할 광고보고서 엑셀 파일을 업로드하세요", type=['xlsx', 'xls'])
 
@@ -100,7 +105,6 @@ if uploaded_file is not None:
         # ════════════════════════════════════════════════════════
         # [1단계] 전체 성과 및 영역별 요약
         # ════════════════════════════════════════════════════════
-        # 💡 [디자인 수정] 영역 구분을 명확히 하기 위해 subheader 대신 크고 여백이 많은 header 사용
         st.header("1️⃣ 전체 성과 및 영역별 요약")
         
         total_ad_spend = df_total.get('광고비', 0)
@@ -114,7 +118,7 @@ if uploaded_file is not None:
         col_t3.metric("전체 평균 ROAS", f"{total_roas:,.2f}%")
         col_t4.metric("총 주문수", f"{total_orders:,.0f}건")
 
-        st.write("<br>", unsafe_allow_html=True) # 카드와 표 사이 여유 공간
+        st.write("<br>", unsafe_allow_html=True) 
         
         search_sales_pct = safe_div(df_search.get('총 전환매출액(14일)', 0), total_sales) * 100
         non_search_sales_pct = safe_div(df_non_search.get('총 전환매출액(14일)', 0), total_sales) * 100
@@ -166,7 +170,6 @@ if uploaded_file is not None:
                     st.warning(f"**💡 쿠팡 광고 가이드:** 매출의 **{non_search_sales_pct:.1f}%**가 비검색영역에 쏠려 있습니다. 자동 캠페인의 기본 입찰가를 방어적으로 조절하여 광고비 누수를 막으세요.")
 
 
-        # 💡 [디자인 수정] 1단계가 완전히 끝난 후, 2단계 진입 전에 시각적인 숨고르기(엄청 큰 여백과 구분선) 추가
         st.markdown("<br><br>", unsafe_allow_html=True)
         st.divider()
         st.markdown("<br>", unsafe_allow_html=True)
@@ -186,14 +189,16 @@ if uploaded_file is not None:
         
         if len(negative_keywords) > 0:
             st.error("❗ 아래 키워드들을 쿠팡 광고센터의 [제외 키워드] 란에 즉시 추가하세요.")
-            st.text_area(label="전체 복사 (매출 0원 & 고비용 키워드)", value=", ".join(negative_keywords), height=100)
+            # 💡 [수정] 박스 높이를 100 -> 300 으로 넓혀서 한눈에 보이게 만듦
+            st.text_area(label="전체 복사 (매출 0원 & 고비용 키워드)", value=", ".join(negative_keywords), height=300)
         
         st.write("<br>", unsafe_allow_html=True) 
 
+        # 💡 [수정] 2단계 표 폰트 사이즈 살짝 키움 (14px)
         def highlight_sales_status(row):
             if row['총 전환매출액(14일)'] > 0:
-                return ['background-color: #EBF7EE; color: #1E4620; font-weight: 700'] * len(row)
-            return ['background-color: #FFF0F0; color: #C62828; font-weight: 700'] * len(row)
+                return ['background-color: #EBF7EE; color: #1E4620; font-weight: 700; font-size: 14px'] * len(row)
+            return ['background-color: #FFF0F0; color: #C62828; font-weight: 700; font-size: 14px'] * len(row)
 
         col_kw1, col_kw2 = st.columns(2)
         with col_kw1:
@@ -208,8 +213,6 @@ if uploaded_file is not None:
                 'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}'
             }), use_container_width=True, hide_index=True)
 
-
-        # 💡 [디자인 수정] 2단계 끝난 후 여백
         st.markdown("<br><br>", unsafe_allow_html=True)
         st.divider()
         st.markdown("<br>", unsafe_allow_html=True)
@@ -223,11 +226,12 @@ if uploaded_file is not None:
         final_df.loc[non_search_condition, '키워드'] = '비검색영역'
         final_df = final_df.rename(columns={'총 주문수(14일)': '주문', '총 판매수량(14일)': '수량', '총 전환매출액(14일)': '매출액'})
         
+        # 💡 [수정] 3단계 표 글자 크기를 15px로 강제 확대하여 가독성 개선
         def highlight_roas_soft(row):
             if row['ROAS'] > 0:
-                color = 'background-color: #E8F5E9; color: #111111; font-weight: normal'
+                color = 'background-color: #E8F5E9; color: #111111; font-weight: normal; font-size: 15px'
             else:
-                color = 'color: #111111; font-weight: normal'
+                color = 'color: #111111; font-weight: normal; font-size: 15px'
             return [color] * len(row)
 
         cols_order = ['키워드', '노출수', '클릭수', 'CPC', '광고비', '주문', '수량', '매출액', 'ROAS']
