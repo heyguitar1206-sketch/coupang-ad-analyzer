@@ -7,23 +7,34 @@ st.set_page_config(page_title="쿠팡 광고 분석기", layout="wide")
 
 st.markdown("""
     <style>
-    /* 💡 [신규 추가] 콘텐츠 가로 길이를 전체 화면의 70%로 강제 제한하고 중앙 정렬 */
+    /* 콘텐츠 가로 길이를 전체 화면의 70%로 강제 제한하고 중앙 정렬 */
     .block-container {
         max-width: 70% !important;
+        padding-top: 3rem !important;
+        padding-bottom: 5rem !important;
     }
     
-    /* 전체 폰트 및 스타일 통일 */
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
-    
-    html, body, [class*="css"] {
+    /* 💡 [신규 추가] 전체 폰트 줄간격 및 여유 공간 확대 */
+    html, body, [class*="css"], p, span {
         font-family: 'Noto Sans KR', sans-serif !important;
         color: #111111 !important;
+        line-height: 1.8 !important; /* 글자 위아래 간격을 넓혀 가독성 향상 */
     }
     
-    /* 헤더 스타일 커스텀 (쿠팡 블루) */
+    /* 헤더 스타일 커스텀 (쿠팡 블루) 및 💡섹션별 위아래 여백 대폭 확대 */
     .stHeader h1, .stHeader h2, .stHeader h3 {
         color: #007AFF !important;
         font-weight: 800 !important;
+    }
+    
+    h2 {
+        margin-top: 3.5rem !important; /* 1, 2, 3단계 제목 위쪽 공백을 아주 크게 띄움 */
+        margin-bottom: 1.5rem !important;
+    }
+    
+    h3 {
+        margin-top: 2rem !important;
+        margin-bottom: 1.2rem !important;
     }
     
     /* 메트릭 카드 디자인 개선 */
@@ -36,19 +47,26 @@ st.markdown("""
         font-size: 16px !important;
         font-weight: 700 !important;
         color: #555555 !important;
+        margin-bottom: 0.5rem !important;
     }
     
-    /* 표 헤더 색상 및 텍스트 선명도 */
+    /* 표 헤더 색상 및 여백 */
     thead tr th {
         background-color: #F0F7FF !important;
         color: #0056b3 !important;
         font-weight: 700 !important;
+        padding: 12px 10px !important; /* 표 내부 셀 여백 넉넉하게 */
+    }
+    
+    tbody tr td {
+        padding: 10px 10px !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
 st.title("📊 쿠팡 광고보고서 자동 분석기")
 st.markdown("쿠팡 윙(Wing) 스타일의 직관적인 인터페이스로 광고 성과를 심층 분석합니다.")
+st.write("<br>", unsafe_allow_html=True) # 타이틀 아래 공간 띄우기
 
 uploaded_file = st.file_uploader("분석할 광고보고서 엑셀 파일을 업로드하세요", type=['xlsx', 'xls'])
 
@@ -82,7 +100,8 @@ if uploaded_file is not None:
         # ════════════════════════════════════════════════════════
         # [1단계] 전체 성과 및 영역별 요약
         # ════════════════════════════════════════════════════════
-        st.subheader("1️⃣ 전체 성과 및 영역별 요약")
+        # 💡 [디자인 수정] 영역 구분을 명확히 하기 위해 subheader 대신 크고 여백이 많은 header 사용
+        st.header("1️⃣ 전체 성과 및 영역별 요약")
         
         total_ad_spend = df_total.get('광고비', 0)
         total_sales = df_total.get('총 전환매출액(14일)', 0)
@@ -95,7 +114,7 @@ if uploaded_file is not None:
         col_t3.metric("전체 평균 ROAS", f"{total_roas:,.2f}%")
         col_t4.metric("총 주문수", f"{total_orders:,.0f}건")
 
-        st.write("") 
+        st.write("<br>", unsafe_allow_html=True) # 카드와 표 사이 여유 공간
         
         search_sales_pct = safe_div(df_search.get('총 전환매출액(14일)', 0), total_sales) * 100
         non_search_sales_pct = safe_div(df_non_search.get('총 전환매출액(14일)', 0), total_sales) * 100
@@ -139,17 +158,23 @@ if uploaded_file is not None:
         st.table(styled_summary)
 
         with st.container():
-            st.markdown("---")
+            st.write("<br>", unsafe_allow_html=True)
             if total_sales > 0:
                 if search_sales_pct >= non_search_sales_pct:
                     st.info(f"**💡 쿠팡 광고 가이드:** 전체 매출의 **{search_sales_pct:.1f}%**가 검색영역에서 발생 중입니다. 효율이 좋은 핵심 키워드를 선별하여 수동 입찰가를 높이는 전략이 유효합니다.")
                 else:
                     st.warning(f"**💡 쿠팡 광고 가이드:** 매출의 **{non_search_sales_pct:.1f}%**가 비검색영역에 쏠려 있습니다. 자동 캠페인의 기본 입찰가를 방어적으로 조절하여 광고비 누수를 막으세요.")
 
+
+        # 💡 [디자인 수정] 1단계가 완전히 끝난 후, 2단계 진입 전에 시각적인 숨고르기(엄청 큰 여백과 구분선) 추가
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.divider()
+        st.markdown("<br>", unsafe_allow_html=True)
+
         # ════════════════════════════════════════════════════════
         # [2단계] 제외 키워드 추출
         # ════════════════════════════════════════════════════════
-        st.subheader("2️⃣ 자동 제외 키워드 추출 (Top 30)")
+        st.header("2️⃣ 자동 제외 키워드 추출 (Top 30)")
         
         df_keywords = pivot_df[~non_search_condition].copy()
         top_spend = df_keywords.sort_values(by='광고비', ascending=False).head(30)
@@ -163,7 +188,7 @@ if uploaded_file is not None:
             st.error("❗ 아래 키워드들을 쿠팡 광고센터의 [제외 키워드] 란에 즉시 추가하세요.")
             st.text_area(label="전체 복사 (매출 0원 & 고비용 키워드)", value=", ".join(negative_keywords), height=100)
         
-        st.write("") 
+        st.write("<br>", unsafe_allow_html=True) 
 
         def highlight_sales_status(row):
             if row['총 전환매출액(14일)'] > 0:
@@ -172,21 +197,27 @@ if uploaded_file is not None:
 
         col_kw1, col_kw2 = st.columns(2)
         with col_kw1:
-            st.markdown("**💸 광고비 지출 Top 30**")
+            st.subheader("💸 광고비 지출 Top 30")
             st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 '광고비': '{:,.0f}', 'ROAS': '{:,.2f}', '총 전환매출액(14일)': '{:,.0f}'
             }), use_container_width=True, hide_index=True)
 
         with col_kw2:
-            st.markdown("**📈 평균 CPC Top 30**")
+            st.subheader("📈 평균 CPC Top 30")
             st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}'
             }), use_container_width=True, hide_index=True)
 
+
+        # 💡 [디자인 수정] 2단계 끝난 후 여백
+        st.markdown("<br><br>", unsafe_allow_html=True)
+        st.divider()
+        st.markdown("<br>", unsafe_allow_html=True)
+
         # ════════════════════════════════════════════════════════
         # [3단계] 키워드별 상세 분석
         # ════════════════════════════════════════════════════════
-        st.subheader("3️⃣ 키워드별 상세 분석 전체 시트")
+        st.header("3️⃣ 키워드별 상세 분석 전체 시트")
         
         final_df = pivot_df.copy()
         final_df.loc[non_search_condition, '키워드'] = '비검색영역'
