@@ -7,6 +7,11 @@ st.set_page_config(page_title="쿠팡 광고 분석기", layout="wide")
 
 st.markdown("""
     <style>
+    /* 💡 [신규 추가] 콘텐츠 가로 길이를 전체 화면의 70%로 강제 제한하고 중앙 정렬 */
+    .block-container {
+        max-width: 70% !important;
+    }
+    
     /* 전체 폰트 및 스타일 통일 */
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
     
@@ -168,14 +173,12 @@ if uploaded_file is not None:
         col_kw1, col_kw2 = st.columns(2)
         with col_kw1:
             st.markdown("**💸 광고비 지출 Top 30**")
-            # 💡 [수정] height 파라미터를 제거하여 전체화면 시 끝까지 늘어나도록 함
             st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 '광고비': '{:,.0f}', 'ROAS': '{:,.2f}', '총 전환매출액(14일)': '{:,.0f}'
             }), use_container_width=True, hide_index=True)
 
         with col_kw2:
             st.markdown("**📈 평균 CPC Top 30**")
-            # 💡 [수정] height 파라미터 제거
             st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}'
             }), use_container_width=True, hide_index=True)
@@ -189,7 +192,6 @@ if uploaded_file is not None:
         final_df.loc[non_search_condition, '키워드'] = '비검색영역'
         final_df = final_df.rename(columns={'총 주문수(14일)': '주문', '총 판매수량(14일)': '수량', '총 전환매출액(14일)': '매출액'})
         
-        # 💡 [수정] 볼드(font-weight: 700)를 빼고 눈이 편안한 연한 민트/그린톤 색상 적용
         def highlight_roas_soft(row):
             if row['ROAS'] > 0:
                 color = 'background-color: #E8F5E9; color: #111111; font-weight: normal'
@@ -200,7 +202,6 @@ if uploaded_file is not None:
         cols_order = ['키워드', '노출수', '클릭수', 'CPC', '광고비', '주문', '수량', '매출액', 'ROAS']
         final_df = final_df.sort_values(by='매출액', ascending=False)[cols_order]
 
-        # 💡 [수정] height 파라미터를 제거하여 전체화면 클릭 시 100% 꽉 차도록 변경
         st.dataframe(
             final_df.style.apply(highlight_roas_soft, axis=1).format({
                 '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}',
