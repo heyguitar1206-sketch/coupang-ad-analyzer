@@ -147,30 +147,43 @@ if uploaded_file is not None:
         # 중복 제거 및 리스트화
         negative_keywords = list(set(bad_spend_kw + bad_cpc_kw))
         
-        # ✂️ 제외 키워드 복사 UI
-        st.error("### ✂️ 즉시 적용 가능한 제외 키워드 (매출 0원 & 고비용)")
+        # ✂️ 제외 키워드 복사 UI (자동 줄바꿈 텍스트 영역으로 개선)
+        st.error("### ✂️ 즉시 적용 가능한 제외 키워드 목록")
         if len(negative_keywords) > 0:
-            st.markdown("우측 상단의 **복사 버튼(📋)** 을 눌러 쿠팡 광고 캠페인 - [제외 키워드] 란에 붙여넣으세요.")
-            # st.code 를 사용하면 기본적으로 복사 버튼이 활성화되어 수강생들이 매우 편하게 쓸 수 있습니다.
-            st.code(", ".join(negative_keywords), language='text')
+            # st.text_area를 사용하면 자동으로 줄바꿈이 되고, 우측 상단 복사 버튼도 지원됩니다.
+            st.text_area(
+                label="👇 아래 박스 안의 텍스트를 복사하여 쿠팡 캠페인 [제외 키워드] 란에 붙여넣으세요.", 
+                value=", ".join(negative_keywords), 
+                height=120
+            )
         else:
             st.success("현재 조건(광고비/CPC 상위 30위 내 매출 0원)에 해당하는 악성 제외 키워드가 없습니다! 광고가 아주 효율적으로 돌아가고 있습니다.")
 
         st.write("") # 간격 띄우기
 
+        # 🎨 [신규 추가] 매출 기여 여부에 따른 색상 하이라이트 함수
+        def highlight_sales_status(row):
+            # 매출이 발생한 착한 키워드 (연한 초록색)
+            if row['총 전환매출액(14일)'] > 0:
+                return ['background-color: #E8F5E9; color: #1B5E20; font-weight: bold'] * len(row)
+            # 매출이 0원인 나쁜 키워드 (연한 붉은색)
+            else:
+                return ['background-color: #FFEBEE; color: #B71C1C'] * len(row)
+
+        st.markdown("**🟢 초록색:** 매출에 기여한 효자 키워드 &nbsp;&nbsp;|&nbsp;&nbsp; **🔴 붉은색:** 광고비만 갉아먹는 나쁜 키워드")
         col_kw1, col_kw2 = st.columns(2)
         
         with col_kw1:
             st.subheader("💸 광고비 지출 TOP 30")
-            st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']].style.format({
+            st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 '광고비': '{:,.0f}', 'ROAS': '{:,.2f}', '총 전환매출액(14일)': '{:,.0f}'
-            }), use_container_width=True, hide_index=True, height=500)
+            }), use_container_width=True, hide_index=True, height=600)
 
         with col_kw2:
             st.subheader("📈 평균 CPC TOP 30")
-            st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비', '총 전환매출액(14일)']].style.format({
+            st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}'
-            }), use_container_width=True, hide_index=True, height=500)
+            }), use_container_width=True, hide_index=True, height=600)
 
         st.divider()
 
