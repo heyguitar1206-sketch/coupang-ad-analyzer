@@ -16,6 +16,10 @@ if uploaded_file is not None:
         # --- 데이터 전처리 ---
         df_raw = pd.read_excel(uploaded_file, sheet_name="Sheet1")
         
+        # [핵심 수정] 피벗 테이블 생성 시 빈칸 데이터가 날아가지 않도록 'nan' 문자로 채워줌
+        if '키워드' in df_raw.columns:
+            df_raw['키워드'] = df_raw['키워드'].fillna('nan')
+        
         # 피벗 테이블 생성
         pivot_df = pd.pivot_table(
             df_raw, 
@@ -28,17 +32,23 @@ if uploaded_file is not None:
         pivot_df['CPC'] = np.where(pivot_df['클릭수'] > 0, round(pivot_df['광고비'] / pivot_df['클릭수'], 0), 0)
         pivot_df['ROAS'] = np.where(pivot_df['광고비'] > 0, round((pivot_df['총 전환매출액(14일)'] / pivot_df['광고비']) * 100, 2), 0)
 
-        # 비검색영역 조건 파악 ('-' 또는 'nan' 또는 빈칸)
-        non_search_condition = pivot_df['키워드'].isin(['-', 'nan']) | pivot_df['키워드'].isna()
+        # ════════════════════════════════════════════════════════
+        # [수정] 비검색영역 조건 파악 (매크로 로직 완벽 적용)
+        # ════════════════════════════════════════════════════════
+        # 키워드를 문자열로 바꾸고, 소문자로 변경 후, 양옆 공백을 제거하여 비교
+        kw_str = pivot_df['키워드'].astype(str).str.strip().str.lower()
+        non_search_condition = kw_str.isin(['-', 'nan', 'none', ''])
         
         # 전체, 비검색, 검색 영역 데이터 분리 (합계용)
         df_total = pivot_df.sum(numeric_only=True)
         df_non_search = pivot_df[non_search_condition].sum(numeric_only=True)
+        
+        # 검색영역 = 총합계 - 비검색영역 (기존 매크로와 동일한 수식 적용)
         df_search = df_total - df_non_search
 
         # 0으로 나누기 방지를 위한 안전한 나눗셈 함수
         def safe_div(a, b):
-            return a / b if b > 0 else 0
+            return a / b if b and b > 0 else 0
 
         # ════════════════════════════════════════════════════════
         # [1단계] 검색영역 vs 비검색영역 분석
