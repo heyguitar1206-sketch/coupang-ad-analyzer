@@ -136,21 +136,16 @@ if uploaded_file is not None:
         
         df_keywords = pivot_df[~non_search_condition].copy()
 
-        # TOP 30 데이터 추출
         top_spend = df_keywords.sort_values(by='광고비', ascending=False).head(30)
         top_cpc = df_keywords[df_keywords['클릭수'] >= 3].sort_values(by='CPC', ascending=False).head(30)
 
-        # 💡 [핵심 로직] 제외 키워드 선정 (매출 0원이면서 광고비 TOP 30 이거나 CPC TOP 30 인 경우)
         bad_spend_kw = top_spend[top_spend['총 전환매출액(14일)'] == 0]['키워드'].tolist()
         bad_cpc_kw = top_cpc[top_cpc['총 전환매출액(14일)'] == 0]['키워드'].tolist()
         
-        # 중복 제거 및 리스트화
         negative_keywords = list(set(bad_spend_kw + bad_cpc_kw))
         
-        # ✂️ 제외 키워드 복사 UI (자동 줄바꿈 텍스트 영역으로 개선)
         st.error("### ✂️ 즉시 적용 가능한 제외 키워드 목록")
         if len(negative_keywords) > 0:
-            # st.text_area를 사용하면 자동으로 줄바꿈이 되고, 우측 상단 복사 버튼도 지원됩니다.
             st.text_area(
                 label="👇 아래 박스 안의 텍스트를 복사하여 쿠팡 캠페인 [제외 키워드] 란에 붙여넣으세요.", 
                 value=", ".join(negative_keywords), 
@@ -159,14 +154,11 @@ if uploaded_file is not None:
         else:
             st.success("현재 조건(광고비/CPC 상위 30위 내 매출 0원)에 해당하는 악성 제외 키워드가 없습니다! 광고가 아주 효율적으로 돌아가고 있습니다.")
 
-        st.write("") # 간격 띄우기
+        st.write("") 
 
-        # 🎨 [신규 추가] 매출 기여 여부에 따른 색상 하이라이트 함수
         def highlight_sales_status(row):
-            # 매출이 발생한 착한 키워드 (연한 초록색)
             if row['총 전환매출액(14일)'] > 0:
                 return ['background-color: #E8F5E9; color: #1B5E20; font-weight: bold'] * len(row)
-            # 매출이 0원인 나쁜 키워드 (연한 붉은색)
             else:
                 return ['background-color: #FFEBEE; color: #B71C1C'] * len(row)
 
@@ -192,21 +184,44 @@ if uploaded_file is not None:
         # ════════════════════════════════════════════════════════
         st.header("3️⃣ 키워드별 상세 분석 표")
         
+        # 💡 [신규 추가] 3단계용 데이터 복사 및 비검색영역 라벨링
+        final_df = pivot_df.copy()
+        final_df.loc[non_search_condition, '키워드'] = '비검색영역'
+        
+        # 💡 [신규 추가] 긴 컬럼명을 짧게 변경하여 칸 넓이 최적화
+        final_df = final_df.rename(columns={
+            '총 주문수(14일)': '주문수',
+            '총 판매수량(14일)': '판매수량',
+            '총 전환매출액(14일)': '매출액'
+        })
+        
         def highlight_roas(row):
             color = 'background-color: #FFFF99; color: black' if row['ROAS'] > 0 else ''
             return [color] * len(row)
 
-        cols_order = ['키워드', '노출수', '클릭수', 'CPC', '광고비', '총 주문수(14일)', '총 판매수량(14일)', '총 전환매출액(14일)', 'ROAS']
-        final_df = pivot_df.sort_values(by='총 전환매출액(14일)', ascending=False)[cols_order]
+        cols_order = ['키워드', '노출수', '클릭수', 'CPC', '광고비', '주문수', '판매수량', '매출액', 'ROAS']
+        final_df = final_df.sort_values(by='매출액', ascending=False)[cols_order]
 
         styled_df = final_df.style.apply(highlight_roas, axis=1).format({
             '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}',
-            '광고비': '{:,.0f}', '총 주문수(14일)': '{:,.0f}', 
-            '총 판매수량(14일)': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}', 
+            '광고비': '{:,.0f}', '주문수': '{:,.0f}', 
+            '판매수량': '{:,.0f}', '매출액': '{:,.0f}', 
             'ROAS': '{:,.2f}'
         })
 
-        st.dataframe(styled_df, use_container_width=True, height=600, hide_index=True)
+        # 💡 [신규 추가] column_config를 활용한 세부 넓이 조정 및 높이 확장(800)
+        st.dataframe(
+            styled_df, 
+            use_container_width=True, 
+            height=800, 
+            hide_index=True,
+            column_config={
+                "키워드": st.column_config.TextColumn(width="large"),
+                "주문수": st.column_config.NumberColumn(width="small"),
+                "판매수량": st.column_config.NumberColumn(width="small"),
+                "클릭수": st.column_config.NumberColumn(width="small")
+            }
+        )
 
     except Exception as e:
         st.error(f"데이터를 처리하는 중 오류가 발생했습니다. (상세 에러: {e})")
