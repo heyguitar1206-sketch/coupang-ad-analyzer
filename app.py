@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 
-# [디자인] 페이지 기본 설정 및 모던 폰트 적용을 위한 CSS
+# [디자인] 페이지 기본 설정
 st.set_page_config(page_title="쿠팡 광고 분석기", layout="wide")
 
 st.markdown("""
@@ -45,12 +45,11 @@ st.markdown("""
 st.title("📊 쿠팡 광고보고서 자동 분석기")
 st.markdown("쿠팡 윙(Wing) 스타일의 직관적인 인터페이스로 광고 성과를 심층 분석합니다.")
 
-# 파일 업로드 영역
 uploaded_file = st.file_uploader("분석할 광고보고서 엑셀 파일을 업로드하세요", type=['xlsx', 'xls'])
 
 if uploaded_file is not None:
     try:
-        # --- [로직 유지] 데이터 전처리 ---
+        # --- 데이터 전처리 ---
         df_raw = pd.read_excel(uploaded_file, sheet_name="Sheet1")
         if '키워드' in df_raw.columns:
             df_raw['키워드'] = df_raw['키워드'].fillna('nan')
@@ -76,7 +75,7 @@ if uploaded_file is not None:
             return a / b if b and b > 0 else 0
 
         # ════════════════════════════════════════════════════════
-        # [1단계] 전체 성과 및 영역별 요약 (A컨셉 스타일)
+        # [1단계] 전체 성과 및 영역별 요약
         # ════════════════════════════════════════════════════════
         st.subheader("1️⃣ 전체 성과 및 영역별 요약")
         
@@ -85,7 +84,6 @@ if uploaded_file is not None:
         total_roas = safe_div(total_sales, total_ad_spend) * 100
         total_orders = df_total.get('총 주문수(14일)', 0)
 
-        # 요약 메트릭
         col_t1, col_t2, col_t3, col_t4 = st.columns(4)
         col_t1.metric("총 전환매출액", f"{total_sales:,.0f}원")
         col_t2.metric("총 지출 광고비", f"{total_ad_spend:,.0f}원")
@@ -94,7 +92,6 @@ if uploaded_file is not None:
 
         st.write("") 
         
-        # 영역별 상세 비교 테이블
         search_sales_pct = safe_div(df_search.get('총 전환매출액(14일)', 0), total_sales) * 100
         non_search_sales_pct = safe_div(df_non_search.get('총 전환매출액(14일)', 0), total_sales) * 100
         search_roas_val = safe_div(df_search.get('총 전환매출액(14일)', 0), df_search.get('광고비', 0)) * 100
@@ -123,7 +120,6 @@ if uploaded_file is not None:
         
         summary_df = pd.DataFrame(summary_data)
         
-        # [디자인] 총합계 행 하이라이트 (쿠팡 오렌지톤 가미)
         def highlight_summary(row):
             if row['구분'] == '총합계':
                 return ['background-color: #FFF4E5; color: #E65100; font-weight: 800; font-size: 16px; border-bottom: 2px solid #E65100'] * len(row)
@@ -137,7 +133,6 @@ if uploaded_file is not None:
         
         st.table(styled_summary)
 
-        # 가이드 코멘트 영역 (쿠팡 블루 테두리)
         with st.container():
             st.markdown("---")
             if total_sales > 0:
@@ -147,7 +142,7 @@ if uploaded_file is not None:
                     st.warning(f"**💡 쿠팡 광고 가이드:** 매출의 **{non_search_sales_pct:.1f}%**가 비검색영역에 쏠려 있습니다. 자동 캠페인의 기본 입찰가를 방어적으로 조절하여 광고비 누수를 막으세요.")
 
         # ════════════════════════════════════════════════════════
-        # [2단계] 제외 키워드 추출 (A컨셉 스타일)
+        # [2단계] 제외 키워드 추출
         # ════════════════════════════════════════════════════════
         st.subheader("2️⃣ 자동 제외 키워드 추출 (Top 30)")
         
@@ -159,14 +154,12 @@ if uploaded_file is not None:
         bad_cpc_kw = top_cpc[top_cpc['총 전환매출액(14일)'] == 0]['키워드'].tolist()
         negative_keywords = list(set(bad_spend_kw + bad_cpc_kw))
         
-        # 제외 키워드 박스 (선명한 레드)
         if len(negative_keywords) > 0:
             st.error("❗ 아래 키워드들을 쿠팡 광고센터의 [제외 키워드] 란에 즉시 추가하세요.")
             st.text_area(label="전체 복사 (매출 0원 & 고비용 키워드)", value=", ".join(negative_keywords), height=100)
         
         st.write("") 
 
-        # [디자인] 매출 여부에 따른 선명한 색상 대비
         def highlight_sales_status(row):
             if row['총 전환매출액(14일)'] > 0:
                 return ['background-color: #EBF7EE; color: #1E4620; font-weight: 700'] * len(row)
@@ -175,18 +168,20 @@ if uploaded_file is not None:
         col_kw1, col_kw2 = st.columns(2)
         with col_kw1:
             st.markdown("**💸 광고비 지출 Top 30**")
+            # 💡 [수정] height 파라미터를 제거하여 전체화면 시 끝까지 늘어나도록 함
             st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 '광고비': '{:,.0f}', 'ROAS': '{:,.2f}', '총 전환매출액(14일)': '{:,.0f}'
-            }), use_container_width=True, hide_index=True, height=500)
+            }), use_container_width=True, hide_index=True)
 
         with col_kw2:
             st.markdown("**📈 평균 CPC Top 30**")
+            # 💡 [수정] height 파라미터 제거
             st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
                 'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}'
-            }), use_container_width=True, hide_index=True, height=500)
+            }), use_container_width=True, hide_index=True)
 
         # ════════════════════════════════════════════════════════
-        # [3단계] 키워드별 상세 분석 (A컨셉 스타일)
+        # [3단계] 키워드별 상세 분석
         # ════════════════════════════════════════════════════════
         st.subheader("3️⃣ 키워드별 상세 분석 전체 시트")
         
@@ -194,20 +189,24 @@ if uploaded_file is not None:
         final_df.loc[non_search_condition, '키워드'] = '비검색영역'
         final_df = final_df.rename(columns={'총 주문수(14일)': '주문', '총 판매수량(14일)': '수량', '총 전환매출액(14일)': '매출액'})
         
-        def highlight_roas_bold(row):
-            color = 'background-color: #FFFDE7; color: #000000; font-weight: 700' if row['ROAS'] > 0 else 'color: #333333'
+        # 💡 [수정] 볼드(font-weight: 700)를 빼고 눈이 편안한 연한 민트/그린톤 색상 적용
+        def highlight_roas_soft(row):
+            if row['ROAS'] > 0:
+                color = 'background-color: #E8F5E9; color: #111111; font-weight: normal'
+            else:
+                color = 'color: #111111; font-weight: normal'
             return [color] * len(row)
 
         cols_order = ['키워드', '노출수', '클릭수', 'CPC', '광고비', '주문', '수량', '매출액', 'ROAS']
         final_df = final_df.sort_values(by='매출액', ascending=False)[cols_order]
 
+        # 💡 [수정] height 파라미터를 제거하여 전체화면 클릭 시 100% 꽉 차도록 변경
         st.dataframe(
-            final_df.style.apply(highlight_roas_bold, axis=1).format({
+            final_df.style.apply(highlight_roas_soft, axis=1).format({
                 '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}',
                 '광고비': '{:,.0f}', '주문': '{:,.0f}', '수량': '{:,.0f}', '매출액': '{:,.0f}', 'ROAS': '{:,.2f}'
             }), 
             use_container_width=True, 
-            height=700, 
             hide_index=True,
             column_config={
                 "키워드": st.column_config.TextColumn(width="medium"),
