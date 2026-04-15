@@ -14,7 +14,7 @@ st.markdown("""
         padding-bottom: 5rem !important;
     }
     
-    /* 💡 [수정] 전체 폰트 적용 (글자 겹침 버그 해결을 위해 line-height 분리) */
+    /* 전체 폰트 적용 (글자 겹침 버그 해결을 위해 line-height 분리) */
     html, body, p, span, div, text {
         font-family: 'Noto Sans KR', sans-serif !important;
         color: #111111 !important;
@@ -29,7 +29,7 @@ st.markdown("""
     .stHeader h1, .stHeader h2, .stHeader h3 {
         color: #007AFF !important;
         font-weight: 800 !important;
-        line-height: 1.4 !important; /* 타이틀 줄간격 정상화 */
+        line-height: 1.4 !important; 
     }
     
     h2 {
@@ -180,8 +180,10 @@ if uploaded_file is not None:
         st.header("2️⃣ 자동 제외 키워드 추출 (Top 30)")
         
         df_keywords = pivot_df[~non_search_condition].copy()
+        
+        # 💡 [핵심 수정] CPC Top 30 추출 시 클릭수(>=3) 안전장치 조건 완전 삭제! (단 1번 클릭이라도 비싸면 색출)
         top_spend = df_keywords.sort_values(by='광고비', ascending=False).head(30)
-        top_cpc = df_keywords[df_keywords['클릭수'] >= 3].sort_values(by='CPC', ascending=False).head(30)
+        top_cpc = df_keywords.sort_values(by='CPC', ascending=False).head(30)
 
         bad_spend_kw = top_spend[top_spend['총 전환매출액(14일)'] == 0]['키워드'].tolist()
         bad_cpc_kw = top_cpc[top_cpc['총 전환매출액(14일)'] == 0]['키워드'].tolist()
@@ -189,12 +191,10 @@ if uploaded_file is not None:
         
         if len(negative_keywords) > 0:
             st.error("❗ 아래 키워드들을 쿠팡 광고센터의 [제외 키워드] 란에 즉시 추가하세요.")
-            # 💡 [수정] 박스 높이를 100 -> 300 으로 넓혀서 한눈에 보이게 만듦
             st.text_area(label="전체 복사 (매출 0원 & 고비용 키워드)", value=", ".join(negative_keywords), height=300)
         
         st.write("<br>", unsafe_allow_html=True) 
 
-        # 💡 [수정] 2단계 표 폰트 사이즈 살짝 키움 (14px)
         def highlight_sales_status(row):
             if row['총 전환매출액(14일)'] > 0:
                 return ['background-color: #EBF7EE; color: #1E4620; font-weight: 700; font-size: 14px'] * len(row)
@@ -226,7 +226,6 @@ if uploaded_file is not None:
         final_df.loc[non_search_condition, '키워드'] = '비검색영역'
         final_df = final_df.rename(columns={'총 주문수(14일)': '주문', '총 판매수량(14일)': '수량', '총 전환매출액(14일)': '매출액'})
         
-        # 💡 [수정] 3단계 표 글자 크기를 15px로 강제 확대하여 가독성 개선
         def highlight_roas_soft(row):
             if row['ROAS'] > 0:
                 color = 'background-color: #E8F5E9; color: #111111; font-weight: normal; font-size: 15px'
