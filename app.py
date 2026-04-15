@@ -40,7 +40,7 @@ if uploaded_file is not None:
             return a / b if b and b > 0 else 0
 
         # ════════════════════════════════════════════════════════
-        # [1단계] 전체 성과 및 검색/비검색 영역 요약 (st.table + Styler 적용)
+        # [1단계] 전체 성과 및 검색/비검색 영역 요약
         # ════════════════════════════════════════════════════════
         st.header("1️⃣ 전체 성과 및 영역별 요약")
         
@@ -49,7 +49,7 @@ if uploaded_file is not None:
         total_roas = safe_div(total_sales, total_ad_spend) * 100
         total_orders = df_total.get('총 주문수(14일)', 0)
 
-        # 1. 최상단 전체 요약 대시보드
+        # 최상단 대시보드
         st.subheader("🏆 전체 광고 성과")
         col_t1, col_t2, col_t3, col_t4 = st.columns(4)
         col_t1.metric("총 전환매출액", f"{total_sales:,.0f}원")
@@ -59,9 +59,14 @@ if uploaded_file is not None:
 
         st.write("") 
         
-        # 2. 정적 테이블(st.table)을 활용한 영역별 요약 표
+        # 정적 테이블 요약
         st.subheader("🔍 검색 vs 🌐 비검색 상세 비교")
         
+        search_sales_pct = safe_div(df_search.get('총 전환매출액(14일)', 0), total_sales) * 100
+        non_search_sales_pct = safe_div(df_non_search.get('총 전환매출액(14일)', 0), total_sales) * 100
+        search_roas_val = safe_div(df_search.get('총 전환매출액(14일)', 0), df_search.get('광고비', 0)) * 100
+        non_search_roas_val = safe_div(df_non_search.get('총 전환매출액(14일)', 0), df_non_search.get('광고비', 0)) * 100
+
         summary_data = [
             {
                 '구분': '총합계', 
@@ -75,27 +80,25 @@ if uploaded_file is not None:
                 '노출수': df_non_search.get('노출수',0), '클릭수': df_non_search.get('클릭수',0),
                 'CPC': safe_div(df_non_search.get('광고비',0), df_non_search.get('클릭수',0)), '광고비': df_non_search.get('광고비',0),
                 '광고비 비중': safe_div(df_non_search.get('광고비',0), total_ad_spend) * 100, '총 주문수': df_non_search.get('총 주문수(14일)',0), '총 판매수량': df_non_search.get('총 판매수량(14일)',0),
-                '총 전환매출액': df_non_search.get('총 전환매출액(14일)',0), '매출 비중': safe_div(df_non_search.get('총 전환매출액(14일)',0), total_sales) * 100, 'ROAS': safe_div(df_non_search.get('총 전환매출액(14일)',0), df_non_search.get('광고비',0)) * 100
+                '총 전환매출액': df_non_search.get('총 전환매출액(14일)',0), '매출 비중': non_search_sales_pct, 'ROAS': non_search_roas_val
             },
             {
                 '구분': '검색영역', 
                 '노출수': df_search.get('노출수',0), '클릭수': df_search.get('클릭수',0),
                 'CPC': safe_div(df_search.get('광고비',0), df_search.get('클릭수',0)), '광고비': df_search.get('광고비',0),
                 '광고비 비중': safe_div(df_search.get('광고비',0), total_ad_spend) * 100, '총 주문수': df_search.get('총 주문수(14일)',0), '총 판매수량': df_search.get('총 판매수량(14일)',0),
-                '총 전환매출액': df_search.get('총 전환매출액(14일)',0), '매출 비중': safe_div(df_search.get('총 전환매출액(14일)',0), total_sales) * 100, 'ROAS': safe_div(df_search.get('총 전환매출액(14일)',0), df_search.get('광고비',0)) * 100
+                '총 전환매출액': df_search.get('총 전환매출액(14일)',0), '매출 비중': search_sales_pct, 'ROAS': search_roas_val
             }
         ]
         
         summary_df = pd.DataFrame(summary_data)
         
-        # 총합계 행 하이라이트 함수
         def highlight_summary(row):
             if row['구분'] == '총합계':
                 return ['background-color: #FFEDD5; color: #9A3412; font-weight: bold; font-size: 15px'] * len(row)
             else:
                 return ['font-weight: normal; font-size: 15px'] * len(row)
 
-        # 포맷팅 및 스타일 적용
         styled_summary = summary_df.style.apply(highlight_summary, axis=1).format({
             '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}원',
             '광고비': '{:,.0f}원', '광고비 비중': '{:,.1f}%', '총 주문수': '{:,.0f}건', 
@@ -103,8 +106,49 @@ if uploaded_file is not None:
             'ROAS': '{:,.2f}%'
         })
         
-        # st.table은 스크롤 없이 고정된 크기로 크고 선명하게 렌더링됩니다.
         st.table(styled_summary)
+
+        # 💡 [신규 추가] 데이터 기반 자동 코멘트 생성
+        st.markdown("### 🤖 데이터 기반 캠페인 개선 가이드")
+        
+        if total_sales == 0 and total_ad_spend == 0:
+            st.info("광고 데이터가 충분하지 않아 가이드를 생성할 수 없습니다.")
+        else:
+            if search_sales_pct >= non_search_sales_pct and search_roas_val >= non_search_roas_val:
+                st.success(f"**[진단] 전체 매출의 {search_sales_pct:.1f}%가 검색영역에서 발생하며, 효율(ROAS) 역시 비검색영역보다 우수합니다.**")
+                st.markdown("""
+                **🎯 액션 플랜: 검색영역 집중 및 수동 캠페인 극대화**
+                * 비검색 영역으로 소진되는 광고비(스마트 캠페인, 매출최적화 등)의 비중을 줄이거나 자동 캠페인 입찰가를 낮추세요.
+                * 아래 2단계, 3단계 분석에서 발견된 **효율이 좋은 핵심 키워드를 수동 캠페인으로 분리하여 입찰가를 상향** 조절하세요.
+                * 비검색 영역에서 쓸데없이 돈이 나가는 것을 막기 위해 제외 키워드를 적극 설정하세요.
+                """)
+                
+            elif search_sales_pct >= non_search_sales_pct and search_roas_val < non_search_roas_val:
+                st.warning(f"**[진단] 매출 비중은 검색영역({search_sales_pct:.1f}%)이 더 크지만, 광고 효율(ROAS)은 비검색영역이 더 높습니다.**")
+                st.markdown("""
+                **🎯 액션 플랜: 검색영역 단가 최적화 및 비검색 유지**
+                * 검색영역에서 뼈대 역할을 하는 매출이 나오고 있으나, 광고비 누수가 발생하고 있습니다.
+                * 아래 2단계 분석을 통해 **광고비만 먹고 전환이 안 되는(블랙홀) 키워드를 찾아 입찰가를 대폭 낮추거나 제외**하세요.
+                * 비검색 영역(추천 상품 등)에서 효율적으로 판매가 일어나고 있으므로, 현재의 자동 캠페인 세팅은 당분간 유지해 주세요.
+                """)
+                
+            elif search_sales_pct < non_search_sales_pct and search_roas_val >= non_search_roas_val:
+                st.info(f"**[진단] 전체 매출의 {non_search_sales_pct:.1f}%가 비검색영역에서 발생하지만, 실질적인 효율(ROAS)은 검색영역이 뛰어납니다.**")
+                st.markdown("""
+                **🎯 액션 플랜: 검색 키워드 발굴 및 자동 캠페인 단가 조절**
+                * 쿠팡의 추천 로직에 의해 비검색 영역에서 많이 팔리고 있으나 단가가 비싼 편입니다. 
+                * 자동 캠페인의 기본 입찰가를 50원~100원 단위로 조금씩 낮춰 비검색 영역의 전체 ROAS를 끌어올려 보세요.
+                * 효율이 좋은 검색영역의 파이를 키우기 위해, 세부/중소형 키워드들을 새롭게 소싱하여 수동으로 추가해 보세요.
+                """)
+                
+            else:
+                st.info(f"**[진단] 전체 매출의 {non_search_sales_pct:.1f}%가 비검색영역에서 발생하며, 광고 효율(ROAS) 역시 가장 뛰어납니다.**")
+                st.markdown("""
+                **🎯 액션 플랜: 쿠팡 추천 알고리즘 적극 활용**
+                * 이 상품은 키워드 검색보다는 타 상품 페이지 하단의 '연관 상품'으로 노출되었을 때 가장 잘 팔리는 상품입니다.
+                * 억지로 검색 키워드 입찰가를 높여서 싸우지 마시고, 현재 잘 돌아가는 자동 캠페인을 유지하세요.
+                * 검색 영역의 경우, 지나치게 비싼 키워드가 있다면 과감하게 입찰가를 낮추거나 끄는 것이 이득입니다.
+                """)
 
         st.divider()
 
@@ -121,7 +165,6 @@ if uploaded_file is not None:
         with col_kw1:
             st.subheader("💸 광고비 지출 TOP 10")
             top_spend = df_keywords.sort_values(by='광고비', ascending=False).head(10)
-            
             st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']].style.format({
                 '광고비': '{:,.0f}', 'ROAS': '{:,.2f}', '총 전환매출액(14일)': '{:,.0f}'
             }), use_container_width=True, hide_index=True)
@@ -129,7 +172,6 @@ if uploaded_file is not None:
         with col_kw2:
             st.subheader("📈 평균 CPC TOP 10")
             top_cpc = df_keywords[df_keywords['클릭수'] >= 3].sort_values(by='CPC', ascending=False).head(10)
-            
             st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비']].style.format({
                 'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}'
             }), use_container_width=True, hide_index=True)
