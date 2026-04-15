@@ -14,60 +14,51 @@ st.markdown("""
         padding-bottom: 5rem !important;
     }
     
-    /* 💡 [핵심 수정] 폰트는 전체 적용하되, Streamlit 내부 UI(버튼, 업로더 등)가 깨지지 않도록 정밀 타겟팅 */
-    html, body, [class*="css"] {
-        font-family: 'Noto Sans KR', sans-serif !important;
+    /* 💡 [폰트 변경] 가장 모던하고 세련된 '프리텐다드(Pretendard)' 폰트 임포트 */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+    
+    html, body, p, span, div, text {
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important;
+        color: #1f2937 !important; /* 너무 짙은 검정 대신 부드러운 다크 그레이로 모던함 강조 */
     }
     
-    /* 제목(h1) 줄간격 및 여백 정상화 */
-    h1 {
-        color: #007AFF !important;
-        font-weight: 800 !important;
-        line-height: 1.5 !important;
-        padding-bottom: 1rem !important;
-    }
-    
-    /* 소제목(h2, h3) 줄간격 및 섹션별 위아래 여백 */
-    h2 {
-        color: #007AFF !important;
-        font-weight: 800 !important;
-        line-height: 1.5 !important;
-        margin-top: 3.5rem !important; 
-        margin-bottom: 1.5rem !important;
-    }
-    
-    h3 {
-        color: #007AFF !important;
-        font-weight: 800 !important;
-        line-height: 1.5 !important;
-        margin-top: 2rem !important;
-        margin-bottom: 1.2rem !important;
-    }
-    
-    /* 본문(p, li)에만 넉넉한 줄간격 적용하여 겹침 방지 */
-    p, li {
-        color: #111111 !important;
+    .stMarkdown p {
         line-height: 1.8 !important;
     }
     
+    /* 💡 [제목 디자인 수정] 두께를 700으로 낮추고 자간을 좁혀 세련된 느낌 부여 */
+    h1, h2, h3, .stHeader h1, .stHeader h2, .stHeader h3 {
+        font-family: 'Pretendard', sans-serif !important;
+        color: #2563EB !important; /* 트렌디한 SaaS 블루 컬러 */
+        font-weight: 700 !important; /* 800 -> 700으로 슬림하게 변경 */
+        letter-spacing: -0.5px !important; /* 자간을 살짝 좁혀 타이트한 느낌 */
+        line-height: 1.4 !important;
+    }
+    
+    h1 { padding-bottom: 1rem !important; }
+    h2 { margin-top: 3.5rem !important; margin-bottom: 1.5rem !important; }
+    h3 { margin-top: 2rem !important; margin-bottom: 1.2rem !important; }
+    
     /* 메트릭 카드 디자인 개선 */
     [data-testid="stMetricValue"] {
+        font-family: 'Pretendard', sans-serif !important;
         font-size: 28px !important;
-        font-weight: 900 !important;
-        color: #007AFF !important;
+        font-weight: 800 !important;
+        color: #2563EB !important;
         line-height: 1.2 !important;
+        letter-spacing: -0.5px !important;
     }
     [data-testid="stMetricLabel"] {
-        font-size: 16px !important;
-        font-weight: 700 !important;
-        color: #555555 !important;
+        font-size: 15px !important;
+        font-weight: 600 !important;
+        color: #6b7280 !important;
         margin-bottom: 0.5rem !important;
     }
     
     /* 요약 표 헤더 색상 및 여백 */
     thead tr th {
-        background-color: #F0F7FF !important;
-        color: #0056b3 !important;
+        background-color: #F3F6FF !important; /* 더 은은한 파스텔 블루 */
+        color: #1D4ED8 !important;
         font-weight: 700 !important;
         padding: 12px 10px !important; 
     }
@@ -159,8 +150,8 @@ if uploaded_file is not None:
         
         def highlight_summary(row):
             if row['구분'] == '총합계':
-                return ['background-color: #FFF4E5; color: #E65100; font-weight: 800; font-size: 16px; border-bottom: 2px solid #E65100'] * len(row)
-            return ['background-color: white; color: #333333; font-weight: 600; font-size: 15px'] * len(row)
+                return ['background-color: #FFF4E5; color: #EA580C; font-weight: 700; font-size: 16px; border-bottom: 2px solid #EA580C'] * len(row)
+            return ['background-color: white; color: #374151; font-weight: 500; font-size: 15px'] * len(row)
 
         styled_summary = summary_df.style.apply(highlight_summary, axis=1).format({
             '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}원',
@@ -205,8 +196,8 @@ if uploaded_file is not None:
 
         def highlight_sales_status(row):
             if row['총 전환매출액(14일)'] > 0:
-                return ['background-color: #EBF7EE; color: #1E4620; font-weight: 700; font-size: 14px'] * len(row)
-            return ['background-color: #FFF0F0; color: #C62828; font-weight: 700; font-size: 14px'] * len(row)
+                return ['background-color: #F0FDF4; color: #166534; font-weight: 600; font-size: 14px'] * len(row)
+            return ['background-color: #FEF2F2; color: #B91C1C; font-weight: 600; font-size: 14px'] * len(row)
 
         col_kw1, col_kw2 = st.columns(2)
         with col_kw1:
@@ -236,9 +227,9 @@ if uploaded_file is not None:
         
         def highlight_roas_soft(row):
             if row['ROAS'] > 0:
-                color = 'background-color: #E8F5E9; color: #111111; font-weight: normal; font-size: 15px'
+                color = 'background-color: #F0FDF4; color: #1f2937; font-weight: 500; font-size: 15px'
             else:
-                color = 'color: #111111; font-weight: normal; font-size: 15px'
+                color = 'color: #1f2937; font-weight: 400; font-size: 15px'
             return [color] * len(row)
 
         cols_order = ['키워드', '노출수', '클릭수', 'CPC', '광고비', '주문', '수량', '매출액', 'ROAS']
