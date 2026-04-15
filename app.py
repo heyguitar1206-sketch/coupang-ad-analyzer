@@ -40,7 +40,7 @@ if uploaded_file is not None:
             return a / b if b and b > 0 else 0
 
         # ════════════════════════════════════════════════════════
-        # [1단계] 전체 성과 및 검색/비검색 영역 요약 (디자인 대폭 개선)
+        # [1단계] 전체 성과 및 검색/비검색 영역 요약 (st.table + Styler 적용)
         # ════════════════════════════════════════════════════════
         st.header("1️⃣ 전체 성과 및 영역별 요약")
         
@@ -59,102 +59,52 @@ if uploaded_file is not None:
 
         st.write("") 
         
-        # 2. 커스텀 CSS를 적용한 가독성 높은 영역별 상세 표
-        st.subheader("🔍 검색 vs 🌐 비검색 상세 비교 (비율 포함)")
+        # 2. 정적 테이블(st.table)을 활용한 영역별 요약 표
+        st.subheader("🔍 검색 vs 🌐 비검색 상세 비교")
         
-        # 데이터 계산
         summary_data = [
             {
                 '구분': '총합계', 
                 '노출수': df_total.get('노출수',0), '클릭수': df_total.get('클릭수',0),
                 'CPC': safe_div(total_ad_spend, df_total.get('클릭수',0)), '광고비': total_ad_spend,
-                '광고비비중': 100.0, '총주문수': total_orders, '총판매수량': df_total.get('총 판매수량(14일)',0),
-                '총전환매출액': total_sales, '매출비중': 100.0, 'ROAS': total_roas
+                '광고비 비중': 100.0, '총 주문수': total_orders, '총 판매수량': df_total.get('총 판매수량(14일)',0),
+                '총 전환매출액': total_sales, '매출 비중': 100.0, 'ROAS': total_roas
             },
             {
                 '구분': '비검색영역', 
                 '노출수': df_non_search.get('노출수',0), '클릭수': df_non_search.get('클릭수',0),
                 'CPC': safe_div(df_non_search.get('광고비',0), df_non_search.get('클릭수',0)), '광고비': df_non_search.get('광고비',0),
-                '광고비비중': safe_div(df_non_search.get('광고비',0), total_ad_spend) * 100, '총주문수': df_non_search.get('총 주문수(14일)',0), '총판매수량': df_non_search.get('총 판매수량(14일)',0),
-                '총전환매출액': df_non_search.get('총 전환매출액(14일)',0), '매출비중': safe_div(df_non_search.get('총 전환매출액(14일)',0), total_sales) * 100, 'ROAS': safe_div(df_non_search.get('총 전환매출액(14일)',0), df_non_search.get('광고비',0)) * 100
+                '광고비 비중': safe_div(df_non_search.get('광고비',0), total_ad_spend) * 100, '총 주문수': df_non_search.get('총 주문수(14일)',0), '총 판매수량': df_non_search.get('총 판매수량(14일)',0),
+                '총 전환매출액': df_non_search.get('총 전환매출액(14일)',0), '매출 비중': safe_div(df_non_search.get('총 전환매출액(14일)',0), total_sales) * 100, 'ROAS': safe_div(df_non_search.get('총 전환매출액(14일)',0), df_non_search.get('광고비',0)) * 100
             },
             {
                 '구분': '검색영역', 
                 '노출수': df_search.get('노출수',0), '클릭수': df_search.get('클릭수',0),
                 'CPC': safe_div(df_search.get('광고비',0), df_search.get('클릭수',0)), '광고비': df_search.get('광고비',0),
-                '광고비비중': safe_div(df_search.get('광고비',0), total_ad_spend) * 100, '총주문수': df_search.get('총 주문수(14일)',0), '총판매수량': df_search.get('총 판매수량(14일)',0),
-                '총전환매출액': df_search.get('총 전환매출액(14일)',0), '매출비중': safe_div(df_search.get('총 전환매출액(14일)',0), total_sales) * 100, 'ROAS': safe_div(df_search.get('총 전환매출액(14일)',0), df_search.get('광고비',0)) * 100
+                '광고비 비중': safe_div(df_search.get('광고비',0), total_ad_spend) * 100, '총 주문수': df_search.get('총 주문수(14일)',0), '총 판매수량': df_search.get('총 판매수량(14일)',0),
+                '총 전환매출액': df_search.get('총 전환매출액(14일)',0), '매출 비중': safe_div(df_search.get('총 전환매출액(14일)',0), total_sales) * 100, 'ROAS': safe_div(df_search.get('총 전환매출액(14일)',0), df_search.get('광고비',0)) * 100
             }
         ]
+        
+        summary_df = pd.DataFrame(summary_data)
+        
+        # 총합계 행 하이라이트 함수
+        def highlight_summary(row):
+            if row['구분'] == '총합계':
+                return ['background-color: #FFEDD5; color: #9A3412; font-weight: bold; font-size: 15px'] * len(row)
+            else:
+                return ['font-weight: normal; font-size: 15px'] * len(row)
 
-        # HTML 구조 생성
-        html_table = f"""
-        <style>
-        .custom-table {{
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'Malgun Gothic', sans-serif;
-            margin-top: 10px;
-            color: #1F2937; /* 진하고 선명한 텍스트 색상 */
-        }}
-        .custom-table th {{
-            background-color: #F3F4F6;
-            color: #111827;
-            font-size: 16px; /* 제목 폰트 크기 확대 */
-            font-weight: 800; /* 제목을 두껍게 통일 */
-            padding: 14px 10px;
-            text-align: right;
-            border-bottom: 2px solid #D1D5DB;
-        }}
-        .custom-table th:first-child {{ text-align: center; }}
+        # 포맷팅 및 스타일 적용
+        styled_summary = summary_df.style.apply(highlight_summary, axis=1).format({
+            '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}원',
+            '광고비': '{:,.0f}원', '광고비 비중': '{:,.1f}%', '총 주문수': '{:,.0f}건', 
+            '총 판매수량': '{:,.0f}개', '총 전환매출액': '{:,.0f}원', '매출 비중': '{:,.1f}%',
+            'ROAS': '{:,.2f}%'
+        })
         
-        .custom-table td {{
-            font-size: 15px; /* 일반 텍스트 크기 일치 */
-            font-weight: 600; /* 일반 텍스트도 진하게 표시 */
-            padding: 12px 10px;
-            text-align: right;
-            border-bottom: 1px solid #E5E7EB;
-        }}
-        .custom-table td:first-child {{ text-align: center; font-weight: 800; }}
-        
-        /* 총합계 행 하이라이트 (주황색) */
-        .custom-table tr:nth-child(2) td {{
-            background-color: #FFEDD5;
-            color: #9A3412;
-            font-size: 16px;
-        }}
-        
-        .custom-table tr:hover td {{ background-color: #F9FAFB; }}
-        </style>
-
-        <table class="custom-table">
-            <tr>
-                <th>구분</th><th>노출수</th><th>클릭수</th><th>CPC</th><th>광고비</th>
-                <th>광고비 비중</th><th>총 주문수</th><th>총 판매수량</th><th>총 전환매출액</th>
-                <th>매출 비중</th><th>ROAS</th>
-            </tr>
-        """
-        
-        for row in summary_data:
-            html_table += f"""
-            <tr>
-                <td>{row['구분']}</td>
-                <td>{row['노출수']:,.0f}</td>
-                <td>{row['클릭수']:,.0f}</td>
-                <td>{row['CPC']:,.0f}원</td>
-                <td>{row['광고비']:,.0f}원</td>
-                <td>{row['광고비비중']:.1f}%</td>
-                <td>{row['총주문수']:,.0f}건</td>
-                <td>{row['총판매수량']:,.0f}개</td>
-                <td>{row['총전환매출액']:,.0f}원</td>
-                <td>{row['매출비중']:.1f}%</td>
-                <td>{row['ROAS']:,.2f}%</td>
-            </tr>
-            """
-        html_table += "</table>"
-        
-        # HTML 렌더링
-        st.markdown(html_table, unsafe_allow_html=True)
+        # st.table은 스크롤 없이 고정된 크기로 크고 선명하게 렌더링됩니다.
+        st.table(styled_summary)
 
         st.divider()
 
