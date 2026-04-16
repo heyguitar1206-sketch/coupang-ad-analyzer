@@ -62,13 +62,13 @@ st.markdown("""
         text-align: right !important;
     }
     
-    /* 💡 [핵심 수정] 모든 표의 헤더(첫 줄)를 강제로 가운데 정렬 */
+    /* 모든 표의 헤더(첫 줄)를 강제로 가운데 정렬 */
     thead tr th, table.stTable th {
         background-color: #F3F6FF !important; 
         color: #1D4ED8 !important;
         font-weight: 700 !important;
         padding: 12px 10px !important; 
-        text-align: center !important; /* 항상 가운데 정렬 유지 */
+        text-align: center !important;
     }
     
     tbody tr td {
@@ -161,7 +161,6 @@ if uploaded_file is not None:
                 return ['background-color: #FFF4E5; color: #EA580C; font-weight: 700; font-size: 16px; border-bottom: 2px solid #EA580C'] * len(row)
             return ['background-color: white; color: #374151; font-weight: 500; font-size: 15px'] * len(row)
 
-        # 💡 [핵심 수정] 데이터 정렬과 함께 테이블 헤더('th') 가운데 정렬 추가
         styled_summary = summary_df.style.apply(highlight_summary, axis=1)\
             .set_properties(subset=['구분'], **{'text-align': 'center'})\
             .set_properties(subset=['노출수', '클릭수', 'CPC', '광고비', '광고비비중', '주문수', '판매수량', '매출액', '매출비중', 'ROAS'], **{'text-align': 'right'})\
@@ -174,14 +173,35 @@ if uploaded_file is not None:
         
         st.table(styled_summary)
 
+        # 💡 [핵심 업데이트] 수동/매최 강의 기준에 맞춘 4가지 정밀 진단 코멘트
         with st.container():
             st.write("<br>", unsafe_allow_html=True)
             if total_sales > 0:
-                if search_sales_pct >= non_search_sales_pct:
-                    st.info(f"**💡 쿠팡 광고 가이드:** 전체 매출의 **{search_sales_pct:.1f}%**가 검색영역에서 발생 중입니다. 효율이 좋은 핵심 키워드를 선별하여 수동 입찰가를 높이는 전략이 유효합니다.")
+                st.markdown("#### 💡 끝장캐리 쿠팡 광고 실전 가이드")
+                if non_search_sales_pct > search_sales_pct and non_search_roas_val >= search_roas_val:
+                    st.success(f"**[진단] 비검색영역 매출({non_search_sales_pct:.1f}%)이 높고 효율도 우수합니다.**")
+                    st.markdown("""
+                    * **액션 플랜 (매출최적화 집중):** 비검색영역 노출에 집중하는 것이 유리합니다. 아래 2단계의 **'제외 키워드'를 대량으로 입력**하여 불필요한 검색영역 노출을 차단하세요.
+                    * **단가 세팅:** 현재 효율이 좋으므로 **목표수익률(ROAS) 세팅값을 평소보다 50% ~ 100% 정도 상향**시켜 마진율을 극대화해 보세요.
+                    """)
+                elif non_search_sales_pct > search_sales_pct and non_search_roas_val < search_roas_val:
+                    st.warning(f"**[진단] 매출은 비검색영역({non_search_sales_pct:.1f}%)이 크지만, 실질적 효율(ROAS)은 검색영역이 뛰어납니다.**")
+                    st.markdown("""
+                    * **액션 플랜 (수동성과형 전환):** 비검색영역(자동노출) 성과가 부진하여 광고비 누수가 심합니다. 매출최적화 광고를 끄고 **수동성과형 광고로 전환**하는 것을 추천합니다.
+                    * **단가 세팅:** 우리 제품에 구매 전환이 잘 일어나는 핵심 타겟 키워드만 좁고 정확하게 세팅하여 검색영역 위주로 타이트하게 운영하세요.
+                    """)
+                elif search_sales_pct >= non_search_sales_pct and search_roas_val >= non_search_roas_val:
+                    st.info(f"**[진단] 검색영역 매출({search_sales_pct:.1f}%)이 높고 효율(ROAS)도 비검색영역보다 우수합니다.**")
+                    st.markdown("""
+                    * **액션 플랜 (수동성과형 집중):** 고객이 키워드를 직접 검색하고 들어왔을 때 구매가 잘 일어나는 상품입니다. **수동성과형 광고** 비중을 높여 검색영역 노출을 극대화하세요.
+                    * **단가 세팅:** 효율이 좋은 핵심 키워드의 CPC 입찰가를 상향 조정하고, 성과가 저조한 키워드는 과감히 삭제하여 예산 소진을 방지하세요.
+                    """)
                 else:
-                    st.warning(f"**💡 쿠팡 광고 가이드:** 매출의 **{non_search_sales_pct:.1f}%**가 비검색영역에 쏠려 있습니다. 자동 캠페인의 기본 입찰가를 방어적으로 조절하여 광고비 누수를 막으세요.")
-
+                    st.error(f"**[진단] 검색영역 매출({search_sales_pct:.1f}%)이 높으나, 효율(ROAS)은 비검색영역이 더 좋습니다.**")
+                    st.markdown("""
+                    * **액션 플랜 (키워드 다이어트):** 검색을 통한 유입은 많으나 광고비 지출이 큽니다. 수동성과형 광고에서 클릭만 발생하고 안 팔리는 키워드(블랙홀)를 모두 찾아 삭제하세요.
+                    * **단가 세팅:** 효율이 좋은 비검색영역을 살리기 위해 **수동성과형과 매출최적화 광고를 복사하여 동시 진행(투트랙)**하는 전략도 좋습니다.
+                    """)
 
         st.markdown("<br><br>", unsafe_allow_html=True)
         st.divider()
