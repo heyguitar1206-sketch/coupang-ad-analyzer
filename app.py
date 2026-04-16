@@ -14,24 +14,26 @@ st.markdown("""
         padding-bottom: 5rem !important;
     }
     
-    /* 💡 [폰트 변경] 가장 모던하고 세련된 '프리텐다드(Pretendard)' 폰트 임포트 */
+    /* 세련된 '프리텐다드(Pretendard)' 폰트 임포트 */
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
     
-    html, body, p, span, div, text {
+    /* 💡 [핵심 수정] 전체 폰트 모양만 바꾸고, 겹침을 유발하는 글로벌 줄간격/높이 속성은 전부 삭제하여 기본 UI 보호 */
+    * {
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important;
-        color: #1f2937 !important; /* 너무 짙은 검정 대신 부드러운 다크 그레이로 모던함 강조 */
     }
     
-    .stMarkdown p {
+    /* 💡 [핵심 수정] 오직 우리가 작성한 텍스트(마크다운 본문)에만 줄간격과 색상을 안전하게 적용 */
+    .stMarkdown p, .stMarkdown li {
+        color: #1f2937 !important;
         line-height: 1.8 !important;
+        font-size: 15px !important;
     }
     
-    /* 💡 [제목 디자인 수정] 두께를 700으로 낮추고 자간을 좁혀 세련된 느낌 부여 */
+    /* 제목 디자인 */
     h1, h2, h3, .stHeader h1, .stHeader h2, .stHeader h3 {
-        font-family: 'Pretendard', sans-serif !important;
         color: #2563EB !important; /* 트렌디한 SaaS 블루 컬러 */
-        font-weight: 700 !important; /* 800 -> 700으로 슬림하게 변경 */
-        letter-spacing: -0.5px !important; /* 자간을 살짝 좁혀 타이트한 느낌 */
+        font-weight: 700 !important; 
+        letter-spacing: -0.5px !important; 
         line-height: 1.4 !important;
     }
     
@@ -41,11 +43,9 @@ st.markdown("""
     
     /* 메트릭 카드 디자인 개선 */
     [data-testid="stMetricValue"] {
-        font-family: 'Pretendard', sans-serif !important;
         font-size: 28px !important;
         font-weight: 800 !important;
         color: #2563EB !important;
-        line-height: 1.2 !important;
         letter-spacing: -0.5px !important;
     }
     [data-testid="stMetricLabel"] {
@@ -57,7 +57,7 @@ st.markdown("""
     
     /* 요약 표 헤더 색상 및 여백 */
     thead tr th {
-        background-color: #F3F6FF !important; /* 더 은은한 파스텔 블루 */
+        background-color: #F3F6FF !important; 
         color: #1D4ED8 !important;
         font-weight: 700 !important;
         padding: 12px 10px !important; 
@@ -73,6 +73,7 @@ st.title("📊 쿠팡 광고보고서 자동 분석기")
 st.markdown("쿠팡 윙(Wing) 스타일의 직관적인 인터페이스로 광고 성과를 심층 분석합니다.")
 st.write("<br>", unsafe_allow_html=True) 
 
+# 💡 이 부분이 파일 업로드 기능입니다. CSS 간섭을 없앴으므로 정상적으로 출력됩니다.
 uploaded_file = st.file_uploader("분석할 광고보고서 엑셀 파일을 업로드하세요", type=['xlsx', 'xls'])
 
 if uploaded_file is not None:
