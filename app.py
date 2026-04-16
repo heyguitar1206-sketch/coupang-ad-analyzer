@@ -17,12 +17,12 @@ st.markdown("""
     /* 세련된 '프리텐다드(Pretendard)' 폰트 임포트 */
     @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
     
-    /* 💡 [핵심 수정] 전체 폰트 모양만 바꾸고, 겹침을 유발하는 글로벌 줄간격/높이 속성은 전부 삭제하여 기본 UI 보호 */
+    /* 전체 폰트 모양만 바꾸고, 기본 UI 보호 */
     * {
         font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif !important;
     }
     
-    /* 💡 [핵심 수정] 오직 우리가 작성한 텍스트(마크다운 본문)에만 줄간격과 색상을 안전하게 적용 */
+    /* 본문(마크다운)에만 줄간격 안전하게 적용 */
     .stMarkdown p, .stMarkdown li {
         color: #1f2937 !important;
         line-height: 1.8 !important;
@@ -31,7 +31,7 @@ st.markdown("""
     
     /* 제목 디자인 */
     h1, h2, h3, .stHeader h1, .stHeader h2, .stHeader h3 {
-        color: #2563EB !important; /* 트렌디한 SaaS 블루 컬러 */
+        color: #2563EB !important; 
         font-weight: 700 !important; 
         letter-spacing: -0.5px !important; 
         line-height: 1.4 !important;
@@ -41,7 +41,7 @@ st.markdown("""
     h2 { margin-top: 3.5rem !important; margin-bottom: 1.5rem !important; }
     h3 { margin-top: 2rem !important; margin-bottom: 1.2rem !important; }
     
-    /* 메트릭 카드 디자인 개선 */
+    /* 메트릭 카드 디자인 */
     [data-testid="stMetricValue"] {
         font-size: 28px !important;
         font-weight: 800 !important;
@@ -73,7 +73,6 @@ st.title("📊 쿠팡 광고보고서 자동 분석기")
 st.markdown("쿠팡 윙(Wing) 스타일의 직관적인 인터페이스로 광고 성과를 심층 분석합니다.")
 st.write("<br>", unsafe_allow_html=True) 
 
-# 💡 이 부분이 파일 업로드 기능입니다. CSS 간섭을 없앴으므로 정상적으로 출력됩니다.
 uploaded_file = st.file_uploader("분석할 광고보고서 엑셀 파일을 업로드하세요", type=['xlsx', 'xls'])
 
 if uploaded_file is not None:
@@ -195,10 +194,11 @@ if uploaded_file is not None:
         
         st.write("<br>", unsafe_allow_html=True) 
 
+        # 💡 [핵심 수정] 2단계 폰트 두께를 3단계와 동일하게 부드럽게(500, 400) 낮추고 사이즈를 15px로 통일
         def highlight_sales_status(row):
             if row['총 전환매출액(14일)'] > 0:
-                return ['background-color: #F0FDF4; color: #166534; font-weight: 600; font-size: 14px'] * len(row)
-            return ['background-color: #FEF2F2; color: #B91C1C; font-weight: 600; font-size: 14px'] * len(row)
+                return ['background-color: #F0FDF4; color: #166534; font-weight: 500; font-size: 15px'] * len(row)
+            return ['background-color: #FEF2F2; color: #B91C1C; font-weight: 400; font-size: 15px'] * len(row)
 
         col_kw1, col_kw2 = st.columns(2)
         with col_kw1:
@@ -242,12 +242,7 @@ if uploaded_file is not None:
                 '광고비': '{:,.0f}', '주문': '{:,.0f}', '수량': '{:,.0f}', '매출액': '{:,.0f}', 'ROAS': '{:,.2f}'
             }), 
             use_container_width=True, 
-            hide_index=True,
-            column_config={
-                "키워드": st.column_config.TextColumn(width="medium"),
-                "주문": st.column_config.NumberColumn(width="small"),
-                "수량": st.column_config.NumberColumn(width="small")
-            }
+            hide_index=True
         )
 
     except Exception as e:
