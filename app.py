@@ -41,18 +41,27 @@ st.markdown("""
     h2 { margin-top: 3.5rem !important; margin-bottom: 1.5rem !important; }
     h3 { margin-top: 2rem !important; margin-bottom: 1.2rem !important; }
     
-    /* 메트릭 카드 디자인 */
+    /* 메트릭 카드 숫자 디자인 */
     [data-testid="stMetricValue"] {
         font-size: 28px !important;
         font-weight: 800 !important;
         color: #2563EB !important;
         letter-spacing: -0.5px !important;
     }
-    [data-testid="stMetricLabel"] {
-        font-size: 15px !important;
-        font-weight: 600 !important;
-        color: #6b7280 !important;
-        margin-bottom: 0.5rem !important;
+    
+    /* 💡 [핵심 수정] 메트릭 라벨(총전환매출액 등)의 글자 크기를 표와 동일하게 확대하고 진하게 변경 */
+    [data-testid="stMetricLabel"] * {
+        font-size: 16px !important;
+        font-weight: 700 !important;
+        color: #4B5563 !important;
+    }
+    
+    /* 💡 [핵심 수정] 요약 표(st.table) 헤더 및 셀 정렬 (첫칸은 가운데, 나머지는 오른쪽) */
+    table.stTable th:first-child, table.stTable td:first-child {
+        text-align: center !important;
+    }
+    table.stTable th:not(:first-child), table.stTable td:not(:first-child) {
+        text-align: right !important;
     }
     
     /* 요약 표 헤더 색상 및 여백 */
@@ -153,11 +162,15 @@ if uploaded_file is not None:
                 return ['background-color: #FFF4E5; color: #EA580C; font-weight: 700; font-size: 16px; border-bottom: 2px solid #EA580C'] * len(row)
             return ['background-color: white; color: #374151; font-weight: 500; font-size: 15px'] * len(row)
 
-        styled_summary = summary_df.style.apply(highlight_summary, axis=1).format({
-            '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}원',
-            '광고비': '{:,.0f}원', '광고비비중': '{:,.1f}%', '주문수': '{:,.0f}건', 
-            '판매수량': '{:,.0f}개', '매출액': '{:,.0f}원', '매출비중': '{:,.1f}%', 'ROAS': '{:,.2f}%'
-        })
+        # 💡 [핵심 수정] 데이터 표 정렬 설정 (구분은 가운데, 나머지는 우측)
+        styled_summary = summary_df.style.apply(highlight_summary, axis=1)\
+            .set_properties(subset=['구분'], **{'text-align': 'center'})\
+            .set_properties(subset=['노출수', '클릭수', 'CPC', '광고비', '광고비비중', '주문수', '판매수량', '매출액', '매출비중', 'ROAS'], **{'text-align': 'right'})\
+            .format({
+                '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}원',
+                '광고비': '{:,.0f}원', '광고비비중': '{:,.1f}%', '주문수': '{:,.0f}건', 
+                '판매수량': '{:,.0f}개', '매출액': '{:,.0f}원', '매출비중': '{:,.1f}%', 'ROAS': '{:,.2f}%'
+            })
         
         st.table(styled_summary)
 
@@ -194,7 +207,6 @@ if uploaded_file is not None:
         
         st.write("<br>", unsafe_allow_html=True) 
 
-        # 💡 [핵심 수정] 2단계 폰트 두께를 3단계와 동일하게 부드럽게(500, 400) 낮추고 사이즈를 15px로 통일
         def highlight_sales_status(row):
             if row['총 전환매출액(14일)'] > 0:
                 return ['background-color: #F0FDF4; color: #166534; font-weight: 500; font-size: 15px'] * len(row)
@@ -203,15 +215,24 @@ if uploaded_file is not None:
         col_kw1, col_kw2 = st.columns(2)
         with col_kw1:
             st.subheader("💸 광고비 지출 Top 30")
-            st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
-                '광고비': '{:,.0f}', 'ROAS': '{:,.2f}', '총 전환매출액(14일)': '{:,.0f}'
-            }), use_container_width=True, hide_index=True)
+            # 💡 [핵심 수정] 2단계 데이터 프레임도 가운데/오른쪽 정렬 적용
+            st.dataframe(top_spend[['키워드', '광고비', 'ROAS', '총 전환매출액(14일)']]\
+                .style.apply(highlight_sales_status, axis=1)\
+                .set_properties(subset=['키워드'], **{'text-align': 'center'})\
+                .set_properties(subset=['광고비', 'ROAS', '총 전환매출액(14일)'], **{'text-align': 'right'})\
+                .format({
+                    '광고비': '{:,.0f}', 'ROAS': '{:,.2f}', '총 전환매출액(14일)': '{:,.0f}'
+                }), use_container_width=True, hide_index=True)
 
         with col_kw2:
             st.subheader("📈 평균 CPC Top 30")
-            st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비', '총 전환매출액(14일)']].style.apply(highlight_sales_status, axis=1).format({
-                'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}'
-            }), use_container_width=True, hide_index=True)
+            st.dataframe(top_cpc[['키워드', 'CPC', '클릭수', '광고비', '총 전환매출액(14일)']]\
+                .style.apply(highlight_sales_status, axis=1)\
+                .set_properties(subset=['키워드'], **{'text-align': 'center'})\
+                .set_properties(subset=['CPC', '클릭수', '광고비', '총 전환매출액(14일)'], **{'text-align': 'right'})\
+                .format({
+                    'CPC': '{:,.0f}', '클릭수': '{:,.0f}', '광고비': '{:,.0f}', '총 전환매출액(14일)': '{:,.0f}'
+                }), use_container_width=True, hide_index=True)
 
         st.markdown("<br><br>", unsafe_allow_html=True)
         st.divider()
@@ -236,11 +257,15 @@ if uploaded_file is not None:
         cols_order = ['키워드', '노출수', '클릭수', 'CPC', '광고비', '주문', '수량', '매출액', 'ROAS']
         final_df = final_df.sort_values(by='매출액', ascending=False)[cols_order]
 
+        # 💡 [핵심 수정] 3단계 데이터 프레임도 가운데/오른쪽 정렬 적용
         st.dataframe(
-            final_df.style.apply(highlight_roas_soft, axis=1).format({
-                '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}',
-                '광고비': '{:,.0f}', '주문': '{:,.0f}', '수량': '{:,.0f}', '매출액': '{:,.0f}', 'ROAS': '{:,.2f}'
-            }), 
+            final_df.style.apply(highlight_roas_soft, axis=1)\
+                .set_properties(subset=['키워드'], **{'text-align': 'center'})\
+                .set_properties(subset=['노출수', '클릭수', 'CPC', '광고비', '주문', '수량', '매출액', 'ROAS'], **{'text-align': 'right'})\
+                .format({
+                    '노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}',
+                    '광고비': '{:,.0f}', '주문': '{:,.0f}', '수량': '{:,.0f}', '매출액': '{:,.0f}', 'ROAS': '{:,.2f}'
+                }), 
             use_container_width=True, 
             hide_index=True
         )
