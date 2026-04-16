@@ -173,7 +173,7 @@ if uploaded_file is not None:
         
         st.table(styled_summary)
 
-        # 💡 [핵심 업데이트] 수동/매최 강의 기준에 맞춘 4가지 정밀 진단 코멘트
+        # 💡 [핵심 업데이트] 대표님의 "투트랙 병행 테스트" 전략 완벽 반영
         with st.container():
             st.write("<br>", unsafe_allow_html=True)
             if total_sales > 0:
@@ -185,10 +185,11 @@ if uploaded_file is not None:
                     * **단가 세팅:** 현재 효율이 좋으므로 **목표수익률(ROAS) 세팅값을 평소보다 50% ~ 100% 정도 상향**시켜 마진율을 극대화해 보세요.
                     """)
                 elif non_search_sales_pct > search_sales_pct and non_search_roas_val < search_roas_val:
-                    st.warning(f"**[진단] 매출은 비검색영역({non_search_sales_pct:.1f}%)이 크지만, 실질적 효율(ROAS)은 검색영역이 뛰어납니다.**")
+                    # 💡 [수정됨] 매출최적화를 바로 끄지 않고 투트랙(병행)으로 유도하는 멘트
+                    st.warning(f"**[진단] 매출 볼륨은 비검색영역({non_search_sales_pct:.1f}%)이 크지만, 실질적 효율(ROAS)은 검색영역이 뛰어납니다.**")
                     st.markdown("""
-                    * **액션 플랜 (수동성과형 전환):** 비검색영역(자동노출) 성과가 부진하여 광고비 누수가 심합니다. 매출최적화 광고를 끄고 **수동성과형 광고로 전환**하는 것을 추천합니다.
-                    * **단가 세팅:** 우리 제품에 구매 전환이 잘 일어나는 핵심 타겟 키워드만 좁고 정확하게 세팅하여 검색영역 위주로 타이트하게 운영하세요.
+                    * **액션 플랜 (매최+수동 투트랙 병행 테스트):** 비검색영역의 높은 매출 볼륨을 당장 포기할 수 없으므로 기존 매출최적화 광고를 바로 끄면 안 됩니다. **기존 매최 광고를 유지한 채로 효율이 좋은 '수동성과형 광고'를 새롭게 추가 개설하여 투트랙(Two-Track)으로 테스트**해야 합니다.
+                    * **단가 세팅:** 수동광고에서는 구매 전환이 잘 일어나는 핵심 검색 키워드만 타겟팅하여 단가를 세팅하세요. 일정 기간 후 두 캠페인의 성과 데이터를 면밀히 비교 분석하여 향후 예산 비중을 조절하는 것이 안전합니다.
                     """)
                 elif search_sales_pct >= non_search_sales_pct and search_roas_val >= non_search_roas_val:
                     st.info(f"**[진단] 검색영역 매출({search_sales_pct:.1f}%)이 높고 효율(ROAS)도 비검색영역보다 우수합니다.**")
