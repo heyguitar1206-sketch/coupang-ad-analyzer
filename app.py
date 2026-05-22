@@ -39,47 +39,54 @@ st.markdown("""
     h1, h2, h3, .stHeader h1, .stHeader h2, .stHeader h3 {
         color: #2563EB !important; 
         font-weight: 700 !important; 
-        letter-spacing: -0.5px !important; 
+        letter-spacing: -0.8px !important; 
         line-height: 1.4 !important;
         font-family: 'Pretendard', sans-serif !important;
     }
     
-    /* 💡 [수정] 로그인 화면 전용 모던 CSS (레퍼런스 반영) */
+    /* 💡 [수정] 로그인 화면을 더욱 컴팩트하고 세련되게 조정 */
     .login-wrapper {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding-top: 50px;
+        padding-top: 40px;
     }
     
     .login-card {
         background-color: white;
-        padding: 60px 40px;
-        border-radius: 24px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        border: 1px solid #F3F4F6;
+        padding: 50px 35px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        border: 1px solid #F1F5F9;
         width: 100%;
-        max-width: 480px; /* 창 크기를 컴팩트하게 제한 */
+        max-width: 420px; /* 💡 가로폭을 더 좁게 제한하여 컴팩트함 강조 */
         text-align: center;
     }
     
-    /* 로그인 버튼 스타일 커스텀 */
+    /* 로그인 버튼 스타일 (레퍼런스 스타일 블루) */
     div[data-testid="stForm"] button {
         background-color: #2563EB !important;
         color: white !important;
         font-weight: 700 !important;
-        border-radius: 12px !important;
+        border-radius: 8px !important;
         padding: 0.6rem 2rem !important;
         border: none !important;
-        margin-top: 10px !important;
+        margin-top: 5px !important;
+        font-size: 16px !important;
     }
     
     /* 입력창 디자인 */
     div[data-testid="stTextInput"] input {
-        border-radius: 10px !important;
-        border: 1px solid #D1D5DB !important;
-        padding: 12px !important;
+        border-radius: 8px !important;
+        border: 1px solid #E2E8F0 !important;
+        padding: 10px !important;
+        background-color: #F8FAFC !important;
+    }
+    
+    div[data-testid="stForm"] {
+        border: none !important;
+        padding: 0 !important;
     }
 
     /* 나머지 분석 화면 CSS 유지 */
@@ -101,19 +108,17 @@ if 'logged_in' not in st.session_state:
     st.session_state['logged_in'] = False
 
 if not st.session_state['logged_in']:
-    # 중앙 정렬을 위한 래퍼
     st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
     
-    # 레퍼런스 스타일의 로고 및 텍스트
-    st.markdown("<h1 style='text-align: center; font-size: 42px; margin-bottom: 5px;'>🎯 끝장캐리</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 style='text-align: center; color: #111; font-size: 24px; margin-top: 0;'>수강생 전용 시스템</h2>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #6B7280; margin-bottom: 30px;'>발급받은 아이디와 비밀번호를<br>입력해 주세요.</p>", unsafe_allow_html=True)
+    # 💡 타이틀 변경: 끝장캐리 수동끝판왕
+    st.markdown("<h1 style='text-align: center; font-size: 36px; margin-bottom: 8px;'>🎯 끝장캐리 수동끝판왕</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #1e293b; font-size: 22px; margin-top: 0; font-weight: 500;'>수강생 전용 시스템</h2>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #64748b; font-size: 14px; margin-bottom: 25px;'>발급받은 아이디와 비밀번호를 입력해 주세요.</p>", unsafe_allow_html=True)
     
-    # 💡 컴팩트한 로그인 카드
     st.markdown('<div class="login-card">', unsafe_allow_html=True)
     with st.form("login_form"):
-        input_id = st.text_input("아이디 입력", placeholder="ID를 입력하세요")
-        input_pw = st.text_input("비밀번호 입력", type="password", placeholder="Password를 입력하세요")
+        input_id = st.text_input("아이디 입력", placeholder="ID")
+        input_pw = st.text_input("비밀번호 입력", type="password", placeholder="Password")
         submit_btn = st.form_submit_button("접속하기", use_container_width=True)
         
         if submit_btn:
@@ -130,8 +135,8 @@ if not st.session_state['logged_in']:
                     st.error("정보가 일치하지 않습니다.")
             except FileNotFoundError:
                 st.error("시스템 에러: 'user.csv' 파일을 찾을 수 없습니다.")
-    st.markdown('</div>', unsafe_allow_html=True) # login-card 끝
-    st.markdown('</div>', unsafe_allow_html=True) # login-wrapper 끝
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # 🟢 로그인 성공 시 메인 분석 화면
@@ -150,7 +155,6 @@ else:
 
     if uploaded_file is not None:
         try:
-            # --- 데이터 전처리 ---
             df_raw = pd.read_excel(uploaded_file, sheet_name="Sheet1")
             if '키워드' in df_raw.columns:
                 df_raw['키워드'] = df_raw['키워드'].fillna('nan')
@@ -165,31 +169,19 @@ else:
                         ad_type_detected = "매출최적화"
                     break
             
-            pivot_df = pd.pivot_table(
-                df_raw, 
-                index='키워드', 
-                values=['노출수', '클릭수', '광고비', '총 주문수(14일)', '총 판매수량(14일)', '총 전환매출액(14일)'], 
-                aggfunc='sum'
-            ).reset_index()
-
+            pivot_df = pd.pivot_table(df_raw, index='키워드', values=['노출수', '클릭수', '광고비', '총 주문수(14일)', '총 판매수량(14일)', '총 전환매출액(14일)'], aggfunc='sum').reset_index()
             pivot_df['CPC'] = np.where(pivot_df['클릭수'] > 0, round(pivot_df['광고비'] / pivot_df['클릭수'], 0), 0)
             pivot_df['ROAS'] = np.where(pivot_df['광고비'] > 0, round((pivot_df['총 전환매출액(14일)'] / pivot_df['광고비']) * 100, 2), 0)
-
             kw_str = pivot_df['키워드'].astype(str).str.strip().str.lower()
             non_search_condition = kw_str.isin(['-', 'nan', 'none', ''])
-            
             df_total = pivot_df.sum(numeric_only=True)
             df_non_search = pivot_df[non_search_condition].sum(numeric_only=True)
             df_search = df_total - df_non_search
+            def safe_div(a, b): return a / b if b and b > 0 else 0
 
-            def safe_div(a, b):
-                return a / b if b and b > 0 else 0
-
-            # 1단계 요약
+            # 1단계
             st.header("1️⃣ 전체 성과 및 영역별 요약")
-            
-            total_ad_spend = df_total.get('광고비', 0)
-            total_sales = df_total.get('총 전환매출액(14일)', 0)
+            total_ad_spend, total_sales = df_total.get('광고비', 0), df_total.get('총 전환매출액(14일)', 0)
             total_roas = safe_div(total_sales, total_ad_spend) * 100
             total_orders = df_total.get('총 주문수(14일)', 0)
 
@@ -200,33 +192,23 @@ else:
             col_t4.metric("총 주문수", f"{total_orders:,.0f}건")
 
             st.write("<br>", unsafe_allow_html=True) 
-            
             search_sales_pct = safe_div(df_search.get('총 전환매출액(14일)', 0), total_sales) * 100
             non_search_sales_pct = safe_div(df_non_search.get('총 전환매출액(14일)', 0), total_sales) * 100
             search_roas_val = safe_div(df_search.get('총 전환매출액(14일)', 0), df_search.get('광고비', 0)) * 100
             non_search_roas_val = safe_div(df_non_search.get('총 전환매출액(14일)', 0), df_non_search.get('광고비', 0)) * 100
 
-            summary_data = [
+            summary_df = pd.DataFrame([
                 {'구분': '총합계', '노출수': df_total.get('노출수',0), '클릭수': df_total.get('클릭수',0), 'CPC': safe_div(total_ad_spend, df_total.get('클릭수',0)), '광고비': total_ad_spend, '광고비비중': 100.0, '주문수': total_orders, '판매수량': df_total.get('총 판매수량(14일)',0), '매출액': total_sales, '매출비중': 100.0, 'ROAS': total_roas},
                 {'구분': '비검색영역', '노출수': df_non_search.get('노출수',0), '클릭수': df_non_search.get('클릭수',0), 'CPC': safe_div(df_non_search.get('광고비',0), df_non_search.get('클릭수',0)), '광고비': df_non_search.get('광고비',0), '광고비비중': safe_div(df_non_search.get('광고비',0), total_ad_spend) * 100, '주문수': df_non_search.get('총 주문수(14일)',0), '판매수량': df_non_search.get('총 판매수량(14일)',0), '매출액': df_non_search.get('총 전환매출액(14일)',0), '매출비중': non_search_sales_pct, 'ROAS': non_search_roas_val},
                 {'구분': '검색영역', '노출수': df_search.get('노출수',0), '클릭수': df_search.get('클릭수',0), 'CPC': safe_div(df_search.get('광고비',0), df_search.get('클릭수',0)), '광고비': df_search.get('광고비',0), '광고비비중': safe_div(df_search.get('광고비',0), total_ad_spend) * 100, '주문수': df_search.get('총 주문수(14일)',0), '판매수량': df_search.get('총 판매수량(14일)',0), '매출액': df_search.get('총 전환매출액(14일)',0), '매출비중': search_sales_pct, 'ROAS': search_roas_val}
-            ]
-            
-            summary_df = pd.DataFrame(summary_data)
+            ])
             
             def highlight_summary(row):
                 if row['구분'] == '총합계': return ['background-color: #FFF4E5; color: #EA580C; font-weight: 700; font-size: 16px; border-bottom: 2px solid #EA580C'] * len(row)
                 return ['background-color: white; color: #374151; font-weight: 500; font-size: 15px'] * len(row)
 
-            styled_summary = summary_df.style.apply(highlight_summary, axis=1)\
-                .set_properties(subset=['구분'], **{'text-align': 'center'})\
-                .set_properties(subset=['노출수', '클릭수', 'CPC', '광고비', '광고비비중', '주문수', '판매수량', '매출액', '매출비중', 'ROAS'], **{'text-align': 'right'})\
-                .set_table_styles([dict(selector='th', props=[('text-align', 'center')])])\
-                .format({'노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}원', '광고비': '{:,.0f}원', '광고비비중': '{:,.1f}%', '주문수': '{:,.0f}건', '판매수량': '{:,.0f}개', '매출액': '{:,.0f}원', '매출비중': '{:,.1f}%', 'ROAS': '{:,.2f}%'})
-            
-            st.table(styled_summary)
+            st.table(summary_df.style.apply(highlight_summary, axis=1).set_properties(subset=['구분'], **{'text-align': 'center'}).set_properties(subset=['노출수', '클릭수', 'CPC', '광고비', '광고비비중', '주문수', '판매수량', '매출액', '매출비중', 'ROAS'], **{'text-align': 'right'}).set_table_styles([dict(selector='th', props=[('text-align', 'center')])]).format({'노출수': '{:,.0f}', '클릭수': '{:,.0f}', 'CPC': '{:,.0f}원', '광고비': '{:,.0f}원', '광고비비중': '{:,.1f}%', '주문수': '{:,.0f}건', '판매수량': '{:,.0f}개', '매출액': '{:,.0f}원', '매출비중': '{:,.1f}%', 'ROAS': '{:,.2f}%'}))
 
-            # 가이드 멘트
             with st.container():
                 st.write("<br>", unsafe_allow_html=True)
                 if total_sales > 0:
@@ -257,7 +239,7 @@ else:
 
             st.markdown("<br><br>", unsafe_allow_html=True); st.divider(); st.markdown("<br>", unsafe_allow_html=True)
 
-            # 2단계 제외키워드
+            # 2단계
             st.header("2️⃣ 자동 제외 키워드 추출 (Top 30)")
             df_keywords = pivot_df[~non_search_condition].copy()
             top_spend = df_keywords.sort_values(by='광고비', ascending=False).head(30)
@@ -268,7 +250,6 @@ else:
             if len(negative_keywords) > 0:
                 st.error("❗ 아래 키워드들을 쿠팡 광고센터의 [제외 키워드] 란에 즉시 추가하세요.")
                 st.text_area(label="전체 복사 (매출 0원 & 고비용 키워드)", value=", ".join(negative_keywords), height=300)
-            
             def highlight_sales_status(row):
                 if row['총 전환매출액(14일)'] > 0: return ['background-color: #F0FDF4; color: #166534; font-weight: 500; font-size: 16px'] * len(row)
                 return ['background-color: #FEF2F2; color: #B91C1C; font-weight: 400; font-size: 16px'] * len(row)
@@ -283,7 +264,7 @@ else:
 
             st.markdown("<br><br>", unsafe_allow_html=True); st.divider(); st.markdown("<br>", unsafe_allow_html=True)
 
-            # 3단계 상세분석
+            # 3단계
             st.header("3️⃣ 키워드별 상세 분석 전체 시트")
             final_df = pivot_df.copy()
             final_df.loc[non_search_condition, '키워드'] = '비검색영역'
